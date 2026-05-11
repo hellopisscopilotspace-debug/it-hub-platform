@@ -4,18 +4,18 @@ from uuid import uuid4
 from datetime import datetime
 
 
-# ======================================
-# In-memory storage (MVP version)
-# ======================================
+# ==========================================
+# In-memory storage (MVP)
+# ==========================================
 
 users_db = {}
 projects_db = {}
 ownership_db = {}
 
 
-# ======================================
-# Data models
-# ======================================
+# ==========================================
+# Models
+# ==========================================
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -31,7 +31,9 @@ class UserSettings(BaseModel):
     explanation_style: str = "simple"
 
     theme: str = "dark"
+
     spellcheck_enabled: bool = True
+    error_highlighting_enabled: bool = True
 
     access_level: str = "basic"
 
@@ -41,16 +43,23 @@ class IntentRequest(BaseModel):
     text: str
 
 
+class PricingResponse(BaseModel):
+    access_level: str
+    estimated_cost: float
+
+
 class ProjectResponse(BaseModel):
     project_id: str
     normalized_intent: str
     generated_code: str
     explanation: str
+    highlighted_words: list[str]
+    estimated_cost: float
 
 
-# ======================================
-# Application
-# ======================================
+# ==========================================
+# App
+# ==========================================
 
 app = FastAPI(
     title="IT Hub Platform",
@@ -59,42 +68,99 @@ app = FastAPI(
 )
 
 
-# ======================================
-# Helper functions
-# ======================================
+# ==========================================
+# Helpers
+# ==========================================
+
+def utc_now():
+    return datetime.utcnow().isoformat()
+
 
 def detect_language(text: str) -> str:
-    latin_chars = "abcdefghijklmnopqrstuvwxyz"
+    latin = "abcdefghijklmnopqrstuvwxyz"
 
     for char in text.lower():
-        if char in latin_chars:
+        if char in latin:
             return "en"
 
     return "unknown"
 
 
-def correct_typos(text: str) -> str:
+def estimate_generation_cost(access_level: str) -> float:
+
+    pricing = {
+        "basic": 0.99,
+        "pro": 4.99,
+        "expert": 9.99
+    }
+
+    return pricing.get(access_level, 0.99)
+
+
+def correct_typos(text: str):
 
     typo_map = {
         "creat": "create",
         "bakend": "backend",
-        "javscript": "javascript",
         "pyhton": "python",
+        "javscript": "javascript",
         "websie": "website",
-        "aplication": "application"
+        "aplication": "application",
+        "databse": "database"
     }
 
-    result = text.lower()
+    corrected = text
+    highlighted = []
 
-    for typo, correction in typo_map.items():
-        result = result.replace(typo, correction)
+    words = corrected.split()
 
-    return result.strip()
+    for i, word in enumerate(words):
+
+        clean_word = word.lower()
+
+        if clean_word in typo_map:
+
+            highlighted.append(word)
+
+            words[i] = typo_map[clean_word]
+
+    corrected = " ".join(words)
+
+    return corrected, highlighted
+
+
+def generate_explanation(style: str) -> str:
+
+    if style == "academic":
+        return (
+            "The platform analyzed the request and generated "
+            "a structured implementation strategy."
+        )
+
+    if style == "philosophical":
+        return (
+            "Human intention was transformed into executable logic."
+        )
+
+    if style == "pragmatic":
+        return (
+            "The system generated the fastest working implementation."
+        )
+
+    if style == "professional":
+        return (
+            "Scaffold generated successfully."
+        )
+
+    return (
+        "Your idea was converted into working code."
+    )
 
 
 def generate_code(intent: str, language: str) -> str:
 
     if language == "python":
+
         return f"""
 from fastapi import FastAPI
 
@@ -108,6 +174,7 @@ def root():
 """
 
     if language == "javascript":
+
         return f"""
 const express = require("express");
 
@@ -121,6 +188,7 @@ app.get("/", (req, res) => {{
 """
 
     if language == "typescript":
+
         return f"""
 import express from "express";
 
@@ -136,43 +204,13 @@ app.get("/", (req, res) => {{
     return f"// Generated project from intent: {intent}"
 
 
-def generate_explanation(style: str) -> str:
-
-    if style == "academic":
-        return (
-            "The platform analyzed your request, "
-            "built an execution strategy, "
-            "and generated a software implementation."
-        )
-
-    if style == "philosophical":
-        return (
-            "Your intention was transformed into "
-            "a structured digital artifact."
-        )
-
-    if style == "pragmatic":
-        return (
-            "You described a goal. "
-            "The system generated the fastest working solution."
-        )
-
-    if style == "professional":
-        return (
-            "Project scaffold generated successfully."
-        )
-
-    return (
-        "The system converted your idea into working code."
-    )
-
-
-# ======================================
+# ==========================================
 # Routes
-# ======================================
+# ==========================================
 
 @app.get("/")
 def health_check():
+
     return {
         "platform": "IT Hub",
         "status": "online"
@@ -187,7 +225,7 @@ def register_user(payload: RegisterRequest):
     users_db[user_id] = {
         "email": payload.email,
         "password": payload.password,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": utc_now(),
         "settings": UserSettings().dict()
     }
 
@@ -201,6 +239,7 @@ def register_user(payload: RegisterRequest):
 def get_user(user_id: str):
 
     if user_id not in users_db:
+
         raise HTTPException(
             status_code=404,
             detail="User not found"
@@ -216,6 +255,7 @@ def update_settings(
 ):
 
     if user_id not in users_db:
+
         raise HTTPException(
             status_code=404,
             detail="User not found"
@@ -228,25 +268,55 @@ def update_settings(
     }
 
 
-@app.post("/intent", response_model=ProjectResponse)
-def process_intent(payload: IntentRequest):
+@app.get("/pricing/{user_id}", response_model=PricingResponse)
+def get_pricing_preview(user_id: str):
 
-    if payload.user_id not in users_db:
+    if user_id not in users_db:
+
         raise HTTPException(
             status_code=404,
             detail="User not found"
         )
 
-    user_settings = users_db[payload.user_id]["settings"]
+    settings = users_db[user_id]["settings"]
 
-    raw_intent = payload.text.strip()
+    access_level = settings["access_level"]
 
-    normalized_intent = raw_intent
-
-    if user_settings["spellcheck_enabled"]:
-        normalized_intent = correct_typos(
-            raw_intent
+    return PricingResponse(
+        access_level=access_level,
+        estimated_cost=estimate_generation_cost(
+            access_level
         )
+    )
+
+
+@app.post("/intent", response_model=ProjectResponse)
+def process_intent(payload: IntentRequest):
+
+    if payload.user_id not in users_db:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    settings = users_db[payload.user_id]["settings"]
+
+    original_intent = payload.text.strip()
+
+    normalized_intent = original_intent
+
+    highlighted_words = []
+
+    if settings["spellcheck_enabled"]:
+
+        normalized_intent, highlighted_words = correct_typos(
+            original_intent
+        )
+
+    if settings["correction_mode"] == "quiet":
+
+        highlighted_words = []
 
     detected_language = detect_language(
         normalized_intent
@@ -254,11 +324,15 @@ def process_intent(payload: IntentRequest):
 
     generated_code = generate_code(
         normalized_intent,
-        user_settings["code_language"]
+        settings["code_language"]
     )
 
     explanation = generate_explanation(
-        user_settings["explanation_style"]
+        settings["explanation_style"]
+    )
+
+    estimated_cost = estimate_generation_cost(
+        settings["access_level"]
     )
 
     project_id = str(uuid4())
@@ -268,7 +342,7 @@ def process_intent(payload: IntentRequest):
         "intent": normalized_intent,
         "language": detected_language,
         "code": generated_code,
-        "created_at": datetime.utcnow().isoformat()
+        "created_at": utc_now()
     }
 
     ownership_db[project_id] = {
@@ -276,11 +350,15 @@ def process_intent(payload: IntentRequest):
         "history": [
             {
                 "event": "intent_created",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": utc_now()
+            },
+            {
+                "event": "decision_completed",
+                "timestamp": utc_now()
             },
             {
                 "event": "code_generated",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": utc_now()
             }
         ]
     }
@@ -289,12 +367,14 @@ def process_intent(payload: IntentRequest):
         project_id=project_id,
         normalized_intent=normalized_intent,
         generated_code=generated_code,
-        explanation=explanation
+        explanation=explanation,
+        highlighted_words=highlighted_words,
+        estimated_cost=estimated_cost
     )
 
 
 @app.get("/projects/{user_id}")
-def get_user_projects(user_id: str):
+def get_projects(user_id: str):
 
     results = []
 
@@ -313,12 +393,47 @@ def get_user_projects(user_id: str):
 
 
 @app.get("/ownership/{project_id}")
-def get_project_ownership(project_id: str):
+def get_ownership(project_id: str):
 
     if project_id not in ownership_db:
+
         raise HTTPException(
             status_code=404,
             detail="Project not found"
         )
 
     return ownership_db[project_id]
+
+
+@app.post("/publish/github/{project_id}")
+def publish_to_github(project_id: str):
+
+    if project_id not in projects_db:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    return {
+        "status": "published",
+        "platform": "github",
+        "project_id": project_id
+    }
+
+
+@app.post("/publish/gitlab/{project_id}")
+def publish_to_gitlab(project_id: str):
+
+    if project_id not in projects_db:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    return {
+        "status": "published",
+        "platform": "gitlab",
+        "project_id": project_id
+    }
