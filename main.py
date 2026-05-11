@@ -4,18 +4,19 @@ from uuid import uuid4
 from datetime import datetime
 
 
-# ==========================================
-# In-memory storage (MVP)
-# ==========================================
+# ==================================================
+# In-memory storage
+# ==================================================
 
 users_db = {}
 projects_db = {}
 ownership_db = {}
+marketplace_db = {}
 
 
-# ==========================================
+# ==================================================
 # Models
-# ==========================================
+# ==================================================
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -41,6 +42,7 @@ class UserSettings(BaseModel):
 class IntentRequest(BaseModel):
     user_id: str
     text: str
+    output_type: str
 
 
 class PricingResponse(BaseModel):
@@ -48,18 +50,28 @@ class PricingResponse(BaseModel):
     estimated_cost: float
 
 
+class MarketplaceRequest(BaseModel):
+    user_id: str
+    project_id: str
+    asset_name: str
+    asset_type: str
+    is_private: bool = False
+
+
 class ProjectResponse(BaseModel):
     project_id: str
     normalized_intent: str
+    output_type: str
+    decision_plan: list[str]
     generated_code: str
     explanation: str
     highlighted_words: list[str]
     estimated_cost: float
 
 
-# ==========================================
+# ==================================================
 # App
-# ==========================================
+# ==================================================
 
 app = FastAPI(
     title="IT Hub Platform",
@@ -68,15 +80,16 @@ app = FastAPI(
 )
 
 
-# ==========================================
+# ==================================================
 # Helpers
-# ==========================================
+# ==================================================
 
-def utc_now():
+def now():
     return datetime.utcnow().isoformat()
 
 
-def detect_language(text: str) -> str:
+def detect_language(text: str):
+
     latin = "abcdefghijklmnopqrstuvwxyz"
 
     for char in text.lower():
@@ -86,15 +99,15 @@ def detect_language(text: str) -> str:
     return "unknown"
 
 
-def estimate_generation_cost(access_level: str) -> float:
+def estimate_price(level: str):
 
-    pricing = {
+    price_map = {
         "basic": 0.99,
         "pro": 4.99,
         "expert": 9.99
     }
 
-    return pricing.get(access_level, 0.99)
+    return price_map.get(level, 0.99)
 
 
 def correct_typos(text: str):
@@ -109,55 +122,77 @@ def correct_typos(text: str):
         "databse": "database"
     }
 
-    corrected = text
-    highlighted = []
+    words = text.split()
 
-    words = corrected.split()
+    highlighted = []
 
     for i, word in enumerate(words):
 
-        clean_word = word.lower()
+        normalized = word.lower()
 
-        if clean_word in typo_map:
+        if normalized in typo_map:
 
             highlighted.append(word)
 
-            words[i] = typo_map[clean_word]
+            words[i] = typo_map[normalized]
 
     corrected = " ".join(words)
 
     return corrected, highlighted
 
 
-def generate_explanation(style: str) -> str:
+def build_decision_plan(output_type: str):
 
-    if style == "academic":
-        return (
-            "The platform analyzed the request and generated "
-            "a structured implementation strategy."
-        )
+    plans = {
+        "web_app": [
+            "create_routes",
+            "create_ui_structure",
+            "connect_database",
+            "prepare_deployment"
+        ],
 
-    if style == "philosophical":
-        return (
-            "Human intention was transformed into executable logic."
-        )
+        "mobile_app": [
+            "create_mobile_structure",
+            "create_screens",
+            "connect_api",
+            "prepare_build"
+        ],
 
-    if style == "pragmatic":
-        return (
-            "The system generated the fastest working implementation."
-        )
+        "api_service": [
+            "create_endpoints",
+            "add_validation",
+            "connect_database",
+            "prepare_documentation"
+        ],
 
-    if style == "professional":
-        return (
-            "Scaffold generated successfully."
-        )
+        "game_prototype": [
+            "create_game_loop",
+            "create_scene_structure",
+            "create_input_system"
+        ],
 
-    return (
-        "Your idea was converted into working code."
+        "saas_platform": [
+            "create_authentication",
+            "create_subscription_logic",
+            "create_dashboard"
+        ]
+    }
+
+    return plans.get(
+        output_type,
+        [
+            "analyze_request",
+            "generate_architecture",
+            "generate_output"
+        ]
     )
 
 
-def generate_code(intent: str, language: str) -> str:
+def generate_code(
+    intent: str,
+    language: str,
+    output_type: str
+):
 
     if language == "python":
 
@@ -169,7 +204,8 @@ app = FastAPI()
 @app.get("/")
 def root():
     return {{
-        "message": "Generated from intent: {intent}"
+        "output_type": "{output_type}",
+        "intent": "{intent}"
     }}
 """
 
@@ -182,7 +218,8 @@ const app = express();
 
 app.get("/", (req, res) => {{
     res.json({{
-        message: "Generated from intent: {intent}"
+        output_type: "{output_type}",
+        intent: "{intent}"
     }});
 }});
 """
@@ -196,20 +233,59 @@ const app = express();
 
 app.get("/", (req, res) => {{
     res.json({{
-        message: "Generated from intent: {intent}"
+        output_type: "{output_type}",
+        intent: "{intent}"
     }});
 }});
 """
 
-    return f"// Generated project from intent: {intent}"
+    return f"// Generated from: {intent}"
 
 
-# ==========================================
+def generate_explanation(
+    style: str,
+    output_type: str
+):
+
+    if style == "academic":
+
+        return (
+            f"The system analyzed your request and "
+            f"generated a structured {output_type} implementation."
+        )
+
+    if style == "philosophical":
+
+        return (
+            f"Your intention became an executable "
+            f"{output_type} architecture."
+        )
+
+    if style == "pragmatic":
+
+        return (
+            f"The system generated the fastest "
+            f"working {output_type} solution."
+        )
+
+    if style == "professional":
+
+        return (
+            f"{output_type} scaffold generated successfully."
+        )
+
+    return (
+        f"Your idea was converted into a "
+        f"{output_type} implementation."
+    )
+
+
+# ==================================================
 # Routes
-# ==========================================
+# ==================================================
 
 @app.get("/")
-def health_check():
+def root():
 
     return {
         "platform": "IT Hub",
@@ -218,14 +294,14 @@ def health_check():
 
 
 @app.post("/register")
-def register_user(payload: RegisterRequest):
+def register(payload: RegisterRequest):
 
     user_id = str(uuid4())
 
     users_db[user_id] = {
         "email": payload.email,
         "password": payload.password,
-        "created_at": utc_now(),
+        "created_at": now(),
         "settings": UserSettings().dict()
     }
 
@@ -264,12 +340,12 @@ def update_settings(
     users_db[user_id]["settings"] = settings.dict()
 
     return {
-        "status": "settings_updated"
+        "status": "updated"
     }
 
 
-@app.get("/pricing/{user_id}", response_model=PricingResponse)
-def get_pricing_preview(user_id: str):
+@app.get("/pricing/{user_id}")
+def pricing(user_id: str):
 
     if user_id not in users_db:
 
@@ -280,18 +356,18 @@ def get_pricing_preview(user_id: str):
 
     settings = users_db[user_id]["settings"]
 
-    access_level = settings["access_level"]
-
     return PricingResponse(
-        access_level=access_level,
-        estimated_cost=estimate_generation_cost(
-            access_level
+        access_level=settings["access_level"],
+        estimated_cost=estimate_price(
+            settings["access_level"]
         )
     )
 
 
-@app.post("/intent", response_model=ProjectResponse)
-def process_intent(payload: IntentRequest):
+@app.post("/intent")
+def process_intent(
+    payload: IntentRequest
+):
 
     if payload.user_id not in users_db:
 
@@ -302,36 +378,34 @@ def process_intent(payload: IntentRequest):
 
     settings = users_db[payload.user_id]["settings"]
 
-    original_intent = payload.text.strip()
-
-    normalized_intent = original_intent
-
-    highlighted_words = []
-
-    if settings["spellcheck_enabled"]:
-
-        normalized_intent, highlighted_words = correct_typos(
-            original_intent
-        )
+    corrected_text, highlighted = correct_typos(
+        payload.text
+    )
 
     if settings["correction_mode"] == "quiet":
 
-        highlighted_words = []
+        highlighted = []
 
     detected_language = detect_language(
-        normalized_intent
+        corrected_text
+    )
+
+    decision_plan = build_decision_plan(
+        payload.output_type
     )
 
     generated_code = generate_code(
-        normalized_intent,
-        settings["code_language"]
+        corrected_text,
+        settings["code_language"],
+        payload.output_type
     )
 
     explanation = generate_explanation(
-        settings["explanation_style"]
+        settings["explanation_style"],
+        payload.output_type
     )
 
-    estimated_cost = estimate_generation_cost(
+    estimated_cost = estimate_price(
         settings["access_level"]
     )
 
@@ -339,10 +413,12 @@ def process_intent(payload: IntentRequest):
 
     projects_db[project_id] = {
         "owner_id": payload.user_id,
-        "intent": normalized_intent,
+        "intent": corrected_text,
+        "output_type": payload.output_type,
         "language": detected_language,
+        "decision_plan": decision_plan,
         "code": generated_code,
-        "created_at": utc_now()
+        "created_at": now()
     }
 
     ownership_db[project_id] = {
@@ -350,25 +426,31 @@ def process_intent(payload: IntentRequest):
         "history": [
             {
                 "event": "intent_created",
-                "timestamp": utc_now()
+                "timestamp": now()
             },
             {
                 "event": "decision_completed",
-                "timestamp": utc_now()
+                "timestamp": now()
             },
             {
                 "event": "code_generated",
-                "timestamp": utc_now()
+                "timestamp": now()
+            },
+            {
+                "event": "validation_completed",
+                "timestamp": now()
             }
         ]
     }
 
     return ProjectResponse(
         project_id=project_id,
-        normalized_intent=normalized_intent,
+        normalized_intent=corrected_text,
+        output_type=payload.output_type,
+        decision_plan=decision_plan,
         generated_code=generated_code,
         explanation=explanation,
-        highlighted_words=highlighted_words,
+        highlighted_words=highlighted,
         estimated_cost=estimated_cost
     )
 
@@ -384,7 +466,8 @@ def get_projects(user_id: str):
 
             results.append({
                 "project_id": project_id,
-                "intent": project["intent"]
+                "intent": project["intent"],
+                "output_type": project["output_type"]
             })
 
     return {
@@ -393,7 +476,7 @@ def get_projects(user_id: str):
 
 
 @app.get("/ownership/{project_id}")
-def get_ownership(project_id: str):
+def ownership(project_id: str):
 
     if project_id not in ownership_db:
 
@@ -406,7 +489,7 @@ def get_ownership(project_id: str):
 
 
 @app.post("/publish/github/{project_id}")
-def publish_to_github(project_id: str):
+def publish_github(project_id: str):
 
     if project_id not in projects_db:
 
@@ -417,13 +500,12 @@ def publish_to_github(project_id: str):
 
     return {
         "status": "published",
-        "platform": "github",
-        "project_id": project_id
+        "platform": "github"
     }
 
 
 @app.post("/publish/gitlab/{project_id}")
-def publish_to_gitlab(project_id: str):
+def publish_gitlab(project_id: str):
 
     if project_id not in projects_db:
 
@@ -434,6 +516,58 @@ def publish_to_gitlab(project_id: str):
 
     return {
         "status": "published",
-        "platform": "gitlab",
-        "project_id": project_id
+        "platform": "gitlab"
+    }
+
+
+@app.post("/marketplace/publish")
+def publish_marketplace(
+    payload: MarketplaceRequest
+):
+
+    if payload.project_id not in projects_db:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    asset_id = str(uuid4())
+
+    marketplace_db[asset_id] = {
+        "creator_id": payload.user_id,
+        "project_id": payload.project_id,
+        "asset_name": payload.asset_name,
+        "asset_type": payload.asset_type,
+        "is_private": payload.is_private,
+        "commission_enabled": not payload.is_private,
+        "created_at": now()
+    }
+
+    return {
+        "asset_id": asset_id,
+        "published": True,
+        "commission_enabled": (
+            not payload.is_private
+        )
+    }
+
+
+@app.get("/marketplace")
+def marketplace():
+
+    assets = []
+
+    for asset_id, asset in marketplace_db.items():
+
+        if not asset["is_private"]:
+
+            assets.append({
+                "asset_id": asset_id,
+                "asset_name": asset["asset_name"],
+                "asset_type": asset["asset_type"]
+            })
+
+    return {
+        "assets": assets
     }
