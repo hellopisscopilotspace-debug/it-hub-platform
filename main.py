@@ -1,13 +1,20 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from uuid import uuid4
+from datetime import datetime
+
+
+ownership_store = {}
 
 
 class IntentRequest(BaseModel):
+    user_id: str
     text: str
     language: str | None = "auto"
 
 
 class IntentResponse(BaseModel):
+    project_id: str
     normalized_text: str
     detected_language: str
     notes: str
@@ -15,34 +22,55 @@ class IntentResponse(BaseModel):
 
 app = FastAPI(
     title="IT Hub — Public Edition",
-    description="Intent-based development platform (public version)",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to IT Hub — Public Edition",
-        "status": "online",
+        "status": "online"
     }
 
 
 @app.post("/intent", response_model=IntentResponse)
 def process_intent(payload: IntentRequest):
-    # Very simple placeholder logic for now
+
     text = payload.text.strip()
 
-    # Fake language detection
     if any("привет" in word.lower() for word in text.split()):
         lang = "ru"
     else:
         lang = "en"
 
-    normalized = text  # later: typo fixing, normalization, etc.
+    project_id = str(uuid4())
+
+    ownership_store[project_id] = {
+        "creator": payload.user_id,
+        "created_at": datetime.utcnow().isoformat(),
+        "history": [
+            {
+                "event": "intent_created",
+                "text": text,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        ]
+    }
 
     return IntentResponse(
-        normalized_text=normalized,
+        project_id=project_id,
+        normalized_text=text,
         detected_language=lang,
-        notes="This is a placeholder Intent Engine response.",
+        notes="Intent captured and ownership chain created."
+    )
+
+
+@app.get("/ownership/{project_id}")
+def get_ownership(project_id: str):
+
+    return ownership_store.get(
+        project_id,
+        {
+            "error": "Project not found"
+        }
     )
