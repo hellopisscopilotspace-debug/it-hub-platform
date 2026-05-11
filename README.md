@@ -4,98 +4,218 @@ A next-generation intent-based software development platform.
 
 IT Hub transforms software creation from manual coding into an intent-driven engineering workflow.
 
-Instead of writing code first, users describe what they want to build.
+Instead of writing code first, users describe what they want to build in natural language.
 
-IT Hub then transforms that intent into:
+IT Hub transforms that intention into:
 
-Intent → Decision → Code → Trust
+Intent → Decision → Code → Trust → Release
 
-Where:
-
-Intent — understand what the user wants
-Decision — build an explainable execution plan
-Code — generate implementation artifacts
-Trust — explain why this solution was produced
 Vision
 
-Traditional development starts with syntax.
+Traditional software development starts with syntax.
 
 IT Hub starts with human intention.
 
-Our goal is to create a platform where software engineering becomes:
+Our mission is to make software development:
 
+understandable
 explainable
-auditable
-collaborative
 multilingual
+accessible
+creator-owned
 AI-native
-Core Modules
+Core Features
 Intent Engine
 
-Receives natural language input and converts it into structured development goals.
+Users describe ideas in natural language.
 
-Capabilities:
+Examples:
 
-intent capture
-language detection
-request normalization
-project creation
+"Build an online store"
+"Create a chatbot"
+"Generate a SaaS backend"
+
+The system understands:
+
+project goal
+software type
+technical context
+user intent
+Auto Correction & Context Understanding
+
+IT Hub automatically:
+
+fixes spelling mistakes
+understands incomplete sentences
+interprets user context
+supports imperfect input
+Error Highlighting
+
+The platform can highlight:
+
+spelling mistakes
+unclear instructions
+syntax problems
+
+Errors can be visually marked for learning.
+
+Quiet Mode
+
+For users who prefer privacy.
+
+System behavior:
+
+fixes mistakes silently
+no visible corrections
+smooth interaction
+Learning Mode
+
+For users who want to improve.
+
+System behavior:
+
+highlights mistakes
+explains corrections
+teaches better input habits
 Decision Engine
 
-Builds an explainable execution path before code generation.
+Before generating code, IT Hub builds:
 
+execution logic
+implementation steps
+architecture strategy
+development flow
 Code Generator
 
-Produces implementation code across multiple languages.
+IT Hub generates production-ready code in multiple languages, including:
+
+Python
+JavaScript
+TypeScript
+Java
+C++
+
+and more.
 
 Trust Layer
 
-Explains generated architecture, code decisions, and execution logic.
+In a separate panel, IT Hub explains:
+
+what was generated
+why it was generated
+why specific technologies were chosen
+
+Using human-readable language.
+
+Communication Style Engine
+
+Users can choose explanation styles:
+
+Academic
+Philosophical
+Pragmatic
+Beginner
+Professional
+Mini Settings Panel
+
+A compact settings window includes:
+
+interface language
+code generation language
+explanation language
+correction mode
+theme
+accessibility settings
+notification preferences
+Global Language Support
+
+IT Hub is designed for worldwide usage.
+
+Supports:
+
+English
+Russian
+Greek
+Spanish
+Arabic
+Chinese
+
+and many more.
+
+User Accounts
+
+Each user has:
+
+personal profile
+saved projects
+project history
+personalized settings
+Access Levels
+
+Users can choose AI capability level:
+
+Basic
+Pro
+Expert
+
+Pricing is shown before code generation.
 
 Ownership Chain
 
-Every project created in IT Hub preserves the creator’s intellectual ownership.
+Every project created in IT Hub preserves creator ownership.
 
-The platform tracks software evolution from:
+The platform tracks:
 
 Intent → Decision → Code → Validation → Release
 
 IT Hub records:
 
-original creator
-project creation time
-architectural decisions
+creator identity
+timestamps
+architecture decisions
 generated code versions
 user modifications
 release history
 
-This creates a protected authorship chain for the creator.
+This creates a protected intellectual ownership chain.
 
-Public Edition
+Repository Publishing
 
-This repository contains the public edition of IT Hub.
+Projects can be exported to:
 
-Current implementation includes:
+GitHub
+GitLab
+Marketplace
+Free Creator Mode
 
-FastAPI backend
-intent processing API
-language detection prototype
-ownership chain API
-modular architecture foundation
-Repository Structure
-backend/        # FastAPI backend
-docs/           # Architecture and roadmap
-database/       # Schema definitions
-infra/          # Deployment configs
-Long-Term Vision
+Users can publish projects for free.
 
-IT Hub may evolve into:
+If projects generate revenue:
 
-AI development platform
-team engineering workspace
-explainable autonomous development runtime
+IT Hub receives a platform commission.
+Private Premium Repository
+
+For high-value ideas:
+
+private repositories
+no commission
+full ownership
+protected innovation workflow
+Technology Stack
+
+Current public edition uses:
+
+FastAPI
+Python
+
+Planned expansion:
+
+React
+Next.js
+PostgreSQL
+Redis
 Ownership
 
 Original architecture, product vision, and platform concept created by project founder.
 
-Versioned through repository history.
+Protected through repository history and platform ownership tracking.
