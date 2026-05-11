@@ -24,6 +24,26 @@ multilingual
 accessible
 creator-owned
 AI-native
+Online Workspace
+
+IT Hub provides a browser-based development workspace with multiple panels:
+
+Intent Window
+
+Users describe their ideas using natural language.
+
+Code Window
+
+Generated code appears in real time.
+
+Trust Window
+
+AI explains what was built and why.
+
+Mini Settings Panel
+
+A compact settings window always available during development.
+
 Core Features
 Intent Engine
 
@@ -57,7 +77,7 @@ spelling mistakes
 unclear instructions
 syntax problems
 
-Errors can be visually marked for learning.
+Incorrect words can be visually marked for learning.
 
 Quiet Mode
 
@@ -66,8 +86,8 @@ For users who prefer privacy.
 System behavior:
 
 fixes mistakes silently
-no visible corrections
-smooth interaction
+hides corrections
+keeps interaction smooth
 Learning Mode
 
 For users who want to improve.
@@ -77,6 +97,16 @@ System behavior:
 highlights mistakes
 explains corrections
 teaches better input habits
+Human Comfort Design
+
+IT Hub is designed for users of all experience levels.
+
+The platform supports:
+
+mistake privacy
+beginner-friendly communication
+non-judgmental correction
+adaptive explanations
 Decision Engine
 
 Before generating code, IT Hub builds:
@@ -87,7 +117,7 @@ architecture strategy
 development flow
 Code Generator
 
-IT Hub generates production-ready code in multiple languages, including:
+IT Hub generates code in multiple programming languages, including:
 
 Python
 JavaScript
@@ -103,13 +133,13 @@ In a separate panel, IT Hub explains:
 
 what was generated
 why it was generated
-why specific technologies were chosen
+why specific technologies were selected
 
 Using human-readable language.
 
 Communication Style Engine
 
-Users can choose explanation styles:
+Users can choose how AI explains results:
 
 Academic
 Philosophical
@@ -118,20 +148,20 @@ Beginner
 Professional
 Mini Settings Panel
 
-A compact settings window includes:
+Users can control:
 
 interface language
 code generation language
 explanation language
 correction mode
 theme
-accessibility settings
+accessibility options
 notification preferences
 Global Language Support
 
-IT Hub is designed for worldwide usage.
+IT Hub is designed for global usage.
 
-Supports:
+Supports languages such as:
 
 English
 Russian
@@ -147,9 +177,9 @@ User Accounts
 Each user has:
 
 personal profile
-saved projects
 project history
-personalized settings
+saved sessions
+personal settings
 Access Levels
 
 Users can choose AI capability level:
@@ -157,8 +187,15 @@ Users can choose AI capability level:
 Basic
 Pro
 Expert
+Transparent Pricing
 
-Pricing is shown before code generation.
+Before code generation, users can see:
+
+selected AI access level
+estimated resource usage
+generation cost
+
+No hidden charges.
 
 Ownership Chain
 
@@ -199,7 +236,7 @@ For high-value ideas:
 
 private repositories
 no commission
-full ownership
+full creator ownership
 protected innovation workflow
 Technology Stack
 
