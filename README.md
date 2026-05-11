@@ -26,7 +26,7 @@ creator-owned
 AI-native
 Online Workspace
 
-IT Hub provides a browser-based development workspace with multiple panels:
+IT Hub provides a browser-based development workspace with multiple panels.
 
 Intent Window
 
@@ -61,6 +61,31 @@ project goal
 software type
 technical context
 user intent
+Output Target Selection
+
+Before generation, users choose what they want to build.
+
+Supported outputs include:
+
+Web Application
+Mobile Application
+API Service
+Desktop Application
+Automation Script
+Game Prototype
+Database Architecture
+Browser Extension
+SaaS Platform
+Microservice System
+Documentation
+UI Prototype
+
+The system automatically:
+
+adapts architecture
+selects technologies
+builds implementation strategy
+explains output decisions
 Auto Correction & Context Understanding
 
 IT Hub automatically:
@@ -139,7 +164,9 @@ Using human-readable language.
 
 Communication Style Engine
 
-Users can choose how AI explains results:
+Users can choose how AI explains results.
+
+Available styles:
 
 Academic
 Philosophical
@@ -159,7 +186,7 @@ accessibility options
 notification preferences
 Global Language Support
 
-IT Hub is designed for global usage.
+IT Hub is designed for worldwide usage.
 
 Supports languages such as:
 
@@ -225,9 +252,17 @@ GitLab
 Marketplace
 Free Creator Mode
 
-Users can publish projects for free.
+Users can publish:
 
-If projects generate revenue:
+projects
+modules
+templates
+workflows
+reusable components
+
+Publishing is free.
+
+If published assets generate revenue:
 
 IT Hub receives a platform commission.
 Private Premium Repository
